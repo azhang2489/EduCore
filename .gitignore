@@ -1,0 +1,17 @@
+# Local/runtime files
+.DS_Store
+Thumbs.db
+
+# Environment and credentials
+.env
+.env.*
+config/*.local.php
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+/cache/
