@@ -1,4 +1,4 @@
-# EduCore · Entregable 2
+# EduCore
 
 Prototipo PHP/MySQL de gestión académica con inicio y cierre de sesión, autorización por rol, gestión de estudiantes/cursos y calificaciones.
 
