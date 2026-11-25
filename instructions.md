@@ -25,3 +25,10 @@ When generating code:
 Before using a Bootstrap component, verify its
 availability and syntax against the official documentation.
 
+## Seguridad y administración
+
+- Usa consultas PDO preparadas, autorización en el servidor, escape HTML contextual y protección CSRF para mutaciones.
+- Las cuentas solo las registra el Administrador de Sistema. Los coordinadores solicitan altas; el administrador aprueba y crea la cuenta.
+- Los roles personalizados deben asignarse a un perfil de acceso existente. Protege los roles base y evita que se desactive o elimine al último administrador activo.
+- Tras agregar tablas o columnas, actualiza `database/schema.sql` y una migración aditiva para instalaciones existentes; no requieras reimportar un esquema que elimina datos.
+

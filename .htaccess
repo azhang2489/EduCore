@@ -1,5 +1,5 @@
 Options -Indexes
 
-<FilesMatch "^(schema\.sql|database\.php)$">
+<FilesMatch "^(schema\.sql|security_migration\.sql|database\.php)$">
   Require all denied
 </FilesMatch>

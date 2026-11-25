@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS educore CHARACTER SET utf8mb4 COLLATE utf8mb4_unic
 USE educore;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS audit_logs, login_attempts, grades, schedules, enrollments, courses, students, users, roles, careers;
+DROP TABLE IF EXISTS audit_logs, user_requests, login_attempts, grades, schedules, enrollments, courses, students, users, roles, careers;
 SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE careers (
@@ -19,7 +19,8 @@ CREATE TABLE roles (
   id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(40) NOT NULL UNIQUE,
   label VARCHAR(80) NOT NULL,
-  description VARCHAR(255) NOT NULL
+  description VARCHAR(255) NOT NULL,
+  access_profile VARCHAR(40) NOT NULL DEFAULT 'admin'
 ) ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -124,6 +125,25 @@ CREATE TABLE login_attempts (
   INDEX idx_login_attempts_ip_time (ip_address, attempted_at)
 ) ENGINE=InnoDB;
 
+CREATE TABLE user_requests (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  coordinator_id INT UNSIGNED NOT NULL,
+  career_id SMALLINT UNSIGNED NOT NULL,
+  full_name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  requested_role ENUM('teacher','student') NOT NULL,
+  message VARCHAR(500) NULL,
+  status ENUM('pending','approved','rejected','fulfilled') NOT NULL DEFAULT 'pending',
+  reviewed_by INT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_at TIMESTAMP NULL DEFAULT NULL,
+  CONSTRAINT fk_user_requests_coordinator FOREIGN KEY (coordinator_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_requests_career FOREIGN KEY (career_id) REFERENCES careers(id),
+  CONSTRAINT fk_user_requests_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_user_requests_status_time (status, created_at),
+  INDEX idx_user_requests_coordinator (coordinator_id, created_at)
+) ENGINE=InnoDB;
+
 CREATE TABLE audit_logs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NULL,
@@ -138,12 +158,12 @@ CREATE TABLE audit_logs (
   INDEX idx_audit_entity (entity, entity_id)
 ) ENGINE=InnoDB;
 
-INSERT INTO roles (name, label, description) VALUES
-('system_admin', 'Administrador de Sistema', 'Acceso total a usuarios, carreras, cursos, matrículas y notas.'),
-('admin', 'Administrador', 'Acceso de solo lectura a toda la información.'),
-('career_coordinator', 'Coordinador de Carrera', 'Gestiona estudiantes y cursos de su carrera asignada.'),
-('teacher', 'Docente', 'Consulta sus cursos y modifica notas de sus propios estudiantes.'),
-('student', 'Estudiante', 'Consulta sus cursos, horarios y calificaciones.');
+INSERT INTO roles (name, label, description, access_profile) VALUES
+('system_admin', 'Administrador de Sistema', 'Acceso total a usuarios, carreras, cursos, matrículas y notas.', 'system_admin'),
+('admin', 'Administrador', 'Acceso de solo lectura a toda la información.', 'admin'),
+('career_coordinator', 'Coordinador de Carrera', 'Gestiona estudiantes y cursos de su carrera asignada.', 'career_coordinator'),
+('teacher', 'Docente', 'Consulta sus cursos y modifica notas de sus propios estudiantes.', 'teacher'),
+('student', 'Estudiante', 'Consulta sus cursos, horarios y calificaciones.', 'student');
 
 INSERT INTO careers (name, code) VALUES
 ('Ingeniería de Software', 'ISW'),

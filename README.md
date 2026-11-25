@@ -15,6 +15,8 @@ Prototipo PHP/MySQL de gestión académica con inicio y cierre de sesión, autor
 3. Si el usuario/contraseña MySQL no son `root`/vacío, configura las variables `EDUCORE_DB_HOST`, `EDUCORE_DB_NAME`, `EDUCORE_DB_USER` y `EDUCORE_DB_PASSWORD`, o modifica los valores predeterminados en `config/database.php`.
 4. Abre `http://localhost/EduCore/`.
 
+Para actualizar una instalación existente sin volver a importar el esquema destructivo, ejecuta una sola vez `database/security_migration.sql`.
+
 ## Cuentas de demostración
 
 Todas las cuentas de prueba usan la contraseña `EduCore2026!`.
@@ -47,14 +49,16 @@ Hay un coordinador y dos docentes por cada carrera registrada (incluidas las car
 
 ## Permisos
 
-- **Administrador de Sistema:** acceso total; puede crear usuarios, cursos, estudiantes y cambiar notas.
+- **Administrador de Sistema:** acceso total; puede crear, modificar, desactivar y eliminar usuarios; gestionar roles y aprobar solicitudes.
 - **Administrador:** lectura de todos los módulos, sin acciones de escritura.
-- **Coordinador de Carrera:** CRUD de estudiantes, matrículas y cursos limitados a su carrera; no crea cuentas de acceso.
+- **Coordinador de Carrera:** CRUD de estudiantes, matrículas y cursos limitados a su carrera; puede solicitar altas de estudiantes y docentes y consultar el estado de sus solicitudes.
 - **Docente:** consulta únicamente los cursos que imparte y modifica notas solo de sus cursos; no puede crear estudiantes ni editar cursos.
 - **Estudiante:** consulta sus cursos y calificaciones.
 
-El registro de cuentas está cerrado al público. Solo el Administrador de Sistema crea usuarios; los coordinadores administran las fichas académicas de estudiantes sin crear credenciales.
+El registro de cuentas está cerrado al público. Las solicitudes de coordinadores no crean credenciales: un Administrador de Sistema debe aprobarlas y registrar la cuenta con una contraseña temporal.
+
+Los roles personalizados usan uno de los perfiles de permisos existentes (solo lectura, coordinador, docente o estudiante). Los permisos del Administrador de Sistema y los roles base están protegidos para evitar elevar privilegios o bloquear la administración.
 
 ## Notas de seguridad implementadas
 
-PDO con consultas preparadas, `password_hash()`/`password_verify()`, regeneración de sesión, bloqueo temporal tras cinco intentos de acceso, tokens CSRF en las operaciones POST, escape HTML, validación de propiedad/alcance por carrera y cabeceras CSP/X-Frame-Options/X-Content-Type-Options. Para uso fuera de una máquina local, activa HTTPS y establece credenciales de base de datos seguras mediante variables de entorno.
+PDO con consultas preparadas, `password_hash()`/`password_verify()`, regeneración y expiración por inactividad de sesión, bloqueo temporal tras cinco intentos de acceso por correo o IP, tokens CSRF en las operaciones POST, escape HTML, validación de propiedad/alcance por carrera, auditoría de cambios y cabeceras CSP/X-Frame-Options/X-Content-Type-Options/no-store. HSTS solo se envía bajo HTTPS. Para uso fuera de una máquina local, activa HTTPS y establece credenciales de base de datos seguras mediante variables de entorno. Las cuentas incluidas para demostración usan una contraseña común y deben cambiarse antes de publicar la aplicación.

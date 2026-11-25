@@ -15,11 +15,22 @@ session_set_cookie_params([
 ]);
 session_start();
 
+$sessionIdleLimit = 1800;
+if (isset($_SESSION['last_activity']) && time() - (int) $_SESSION['last_activity'] > $sessionIdleLimit) {
+    $_SESSION = [];
+    session_regenerate_id(true);
+}
+$_SESSION['last_activity'] = time();
+
 header("Content-Security-Policy: default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'");
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header('Cache-Control: no-store, private');
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
 
 function e(mixed $value): string
 {
@@ -57,7 +68,7 @@ function current_user(): ?array
 
     $statement = db()->prepare(
         'SELECT u.id, u.full_name, u.email, u.role_id, u.career_id, u.status,
-                r.name AS role, r.label AS role_label, c.name AS career_name
+            r.name AS role_name, r.access_profile AS role, r.label AS role_label, c.name AS career_name
          FROM users u JOIN roles r ON r.id = u.role_id
          LEFT JOIN careers c ON c.id = u.career_id
          WHERE u.id = :id LIMIT 1'
